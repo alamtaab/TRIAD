@@ -1,2 +1,2 @@
-# SoRAD
-apsc 140 - sound ranging and directioning device
+# TRIAD
+apsc 140 - Triangular Ranging Instrument for Acoustic Detection
