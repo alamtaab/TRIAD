@@ -14,7 +14,7 @@
 .DS_Store
 Thumbs.db
 docs/Expenses-Reimbursement-Form.xlsx
-
+docs
 # KiCad
 *.kicad_prl
 *.kicad_dru
