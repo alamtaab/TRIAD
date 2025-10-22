@@ -1,0 +1,355 @@
+================================================================================
+                    TDoA SOUND SOURCE LOCALIZATION
+================================================================================
+
+Time Difference of Arrival (TDoA) system for locating sound sources using 3
+microphones arranged in an equilateral triangle.
+
+
+SYSTEM OVERVIEW
+================================================================================
+
+This system consists of two main components that work together to locate a
+sound source:
+
+    +-------------------+      +-------------------+
+    |   Time Delay      |  ->  |   TDoA Solver     |
+    |   Estimator       |      |  (Angle+Dist)     |
+    +-------------------+      +-------------------+
+           ^                           |
+      Audio from                  Angle: 45.2°
+      3 microphones              Distance: 3.5m
+
+
+1. TIME DELAY ESTIMATOR (tdoa_time_delay.c)
+--------------------------------------------------------------------------------
+
+Purpose: Analyzes audio from 3 microphones to find when sound arrived at each.
+
+Input:  Raw audio samples from 3 microphones
+Output: DELTA_D12_M and DELTA_D13_M (distance differences in meters)
+
+How it works:
+  - Detects transient sounds (claps, snaps) using onset detection
+  - Finds the moment sound crosses a threshold at each microphone
+  - Calculates time difference between microphones
+  - Converts time delays to distance differences
+
+Best for: Impulsive sounds like handclaps (our prototype starting point)
+
+
+2. TDoA SOLVER (tdoa_solver.c)
+--------------------------------------------------------------------------------
+
+Purpose: Calculates sound source location from distance differences.
+
+Input:  DELTA_D12_M and DELTA_D13_M from time delay estimator
+Output: 
+  - Angle (always): Direction to sound source (0-360°)
+  - Distance (when confident): Distance to sound source
+
+How it works:
+  - Angle: Direct calculation from TDoA geometry (fast, reliable)
+  - Distance: Levenberg-Marquardt optimization with multi-start strategy
+    * Tries 6 different distance guesses along the calculated angle
+    * Only reports distance when error < 1m (high confidence)
+
+Accuracy:
+  - Angle: Typically 0-5° error at all ranges (0-25m)
+  - Distance: Good at close/medium range (0-10m), unreliable beyond 10m
+
+
+HARDWARE REQUIREMENTS
+================================================================================
+
+MICROPHONE ARRAY
+--------------------------------------------------------------------------------
+  - 3 analog electret microphones (e.g., Adafruit 1063, Sparkfun BOB-12758)
+  - Arranged in equilateral triangle with 20cm sides
+  - Suggested layout:
+
+          MIC1 (top)
+            *
+           / \
+          /   \
+         /     \
+        *-------*
+      MIC2    MIC3
+
+MICROCONTROLLER
+--------------------------------------------------------------------------------
+  - Raspberry Pi Pico 2 (RP2350)
+  - 3x ADC inputs for microphones
+  - Recommended sample rate: 48-96 kHz
+    * 48 kHz: Good balance (21µs resolution, ~28 samples max delay)
+    * 96 kHz: Better precision (10µs resolution, ~56 samples max delay)
+
+ADDITIONAL COMPONENTS
+--------------------------------------------------------------------------------
+  - 3x bias resistors for electret mics (typically 2.2kΩ)
+  - 3x DC-blocking capacitors (10µF)
+  - Optional: Pre-amp circuit for better SNR
+
+
+CURRENT LIMITATIONS (PROTOTYPE)
+================================================================================
+
+Known issues to address in future versions:
+
+1. ADC MULTIPLEXING TIME SKEW
+   The Pico's ADC samples channels sequentially, introducing ~2-20µs skew
+   between channels. This adds systematic error to time delays.
+   Future fix: Use I2S or PDM microphones for simultaneous sampling
+
+2. SIMPLE ONSET DETECTION
+   Current threshold-based detection is sensitive to noise and may miss weak
+   sounds or trigger on noise.
+   Future fix: Implement GCC-PHAT cross-correlation for robust detection
+
+3. TRANSIENT SOUNDS ONLY
+   Current implementation works best for impulsive sounds (claps, snaps).
+   Future fix: GCC-PHAT will enable continuous sound tracking
+
+4. DISTANCE ACCURACY AT RANGE
+   Beyond 10m, distance estimation becomes unreliable due to small time
+   differences.
+   Inherent limitation: 3 mics with 20cm spacing. Angle remains accurate.
+
+
+GETTING STARTED
+================================================================================
+
+1. BUILD THE HARDWARE
+--------------------------------------------------------------------------------
+  - Wire up 3 electret microphones to Pico ADC pins
+  - Arrange in equilateral triangle (20cm sides)
+  - Verify all mics are working and responding to sound
+
+
+2. CAPTURE TEST AUDIO
+--------------------------------------------------------------------------------
+In your Pico code:
+
+    MicBuffer mic1, mic2, mic3;
+    
+    // Fill buffers with ADC samples (2400 samples = 50ms @ 48kHz)
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        mic1.samples[i] = adc_read_channel(0);  // Read ADC channel 0
+        mic2.samples[i] = adc_read_channel(1);  // Read ADC channel 1
+        mic3.samples[i] = adc_read_channel(2);  // Read ADC channel 2
+    }
+    mic1.length = mic2.length = mic3.length = BUFFER_SIZE;
+
+
+3. DETECT TIME DELAYS
+--------------------------------------------------------------------------------
+    // Process each microphone buffer
+    process_mic_buffer(&mic1);
+    process_mic_buffer(&mic2);
+    process_mic_buffer(&mic3);
+    
+    // Calculate time delays
+    TimeDelayResult delays = calculate_time_delays(&mic1, &mic2, &mic3);
+    
+    if (!delays.valid) {
+        printf("Failed to detect sound in all channels\n");
+        return;
+    }
+
+
+4. SOLVE FOR LOCATION
+--------------------------------------------------------------------------------
+    // Set up the TDoA solver with calculated delays
+    DELTA_D12_M = delays.delta_d12_m;
+    DELTA_D13_M = delays.delta_d13_m;
+    
+    // Run the solver
+    TDoAResult result = solve_tdoa_location(true_x, true_y);
+    
+    // Display results
+    printf("Angle: %.1f degrees\n", result.angle_deg);
+    if (result.distance_valid) {
+        printf("Distance: %.1f meters\n", result.distance_m);
+    } else {
+        printf("Distance: unreliable\n");
+    }
+
+
+TUNING PARAMETERS
+================================================================================
+
+TIME DELAY ESTIMATOR (tdoa_time_delay.c)
+--------------------------------------------------------------------------------
+    #define SAMPLE_RATE_HZ 48000      // Adjust based on your ADC config
+    #define ONSET_THRESHOLD 0.15f     // 15% of peak - lower = more sensitive
+    #define ENVELOPE_WINDOW 20        // Smoothing - larger = smoother
+    #define MAX_DELAY_SAMPLES 35      // Based on 20cm baseline @ 48kHz
+
+Tuning tips:
+  - If missing claps: Lower ONSET_THRESHOLD to 0.10
+  - If triggering on noise: Raise ONSET_THRESHOLD to 0.20
+  - If claps too sharp/noisy: Increase ENVELOPE_WINDOW to 30-40
+
+TDoA SOLVER (tdoa_solver.c)
+--------------------------------------------------------------------------------
+    #define MAX_ITERATIONS 50         // Solver iteration limit
+    #define DISTANCE_CONFIDENCE_THRESHOLD_CM 100.0f  // When to report distance
+
+Tuning tips:
+  - To report distance more often: Increase threshold to 150-200cm
+  - To be more conservative: Decrease to 50cm
+
+
+TESTING
+================================================================================
+
+Both files include test suites:
+
+TEST TIME DELAY ESTIMATOR
+--------------------------------------------------------------------------------
+    gcc tdoa_time_delay.c -o test_delay -lm
+    ./test_delay
+
+Simulates claps from different directions and shows detected delays.
+
+TEST TDoA SOLVER
+--------------------------------------------------------------------------------
+    gcc tdoa_solver.c -o test_solver -lm
+    ./test_solver
+
+Tests angle and distance calculation across multiple scenarios.
+
+
+PHYSICAL TESTING PROCEDURE
+================================================================================
+
+1. CALIBRATION
+--------------------------------------------------------------------------------
+  - Place sound source at known position (e.g., 2m directly in front)
+  - Clap and record measured angle/distance
+  - Repeat from multiple known positions
+  - Check for systematic offsets
+
+2. RANGE TESTING
+--------------------------------------------------------------------------------
+  - Test at 1m, 3m, 5m, 10m, 15m distances
+  - Note where distance becomes unreliable
+  - Verify angle remains accurate
+
+3. 360° COVERAGE
+--------------------------------------------------------------------------------
+  - Walk in circle around array at constant distance
+  - Clap at 8 positions (every 45°)
+  - Verify angle tracking
+
+
+NEXT STEPS
+================================================================================
+
+SHORT TERM (Prototype Phase)
+--------------------------------------------------------------------------------
+  [x] Basic onset detection working
+  [x] TDoA solver with angle output
+  [ ] Integrate with Pico 2 ADC
+  [ ] Test with real claps in quiet environment
+  [ ] Calibrate threshold and parameters
+  [ ] Test accuracy vs. distance
+
+MEDIUM TERM (Improved Accuracy)
+--------------------------------------------------------------------------------
+  [ ] Implement GCC-PHAT cross-correlation
+  [ ] Add noise floor estimation
+  [ ] Adaptive thresholding
+  [ ] Support continuous sounds (speech, music)
+
+LONG TERM (Production)
+--------------------------------------------------------------------------------
+  [ ] Switch to I2S/PDM mics (simultaneous sampling)
+  [ ] Add 4th microphone (if needed for ambiguity resolution)
+  [ ] Real-time processing optimization
+  [ ] Kalman filter for position tracking
+
+
+MICROPHONE GEOMETRY
+================================================================================
+
+The solver is calibrated for this specific microphone layout:
+
+Coordinates (meters):
+  MIC1: (0.0,    0.11547)   // Top
+  MIC2: (-0.1,  -0.057735)  // Bottom-left
+  MIC3: (0.1,   -0.057735)  // Bottom-right
+
+Triangle properties:
+  - Side length: 0.2m (20cm)
+  - Equilateral: all angles 60°
+  - Centroid: (0, 0)
+
+IMPORTANT: If you change the microphone spacing, update these constants in
+tdoa_solver.c:
+
+    const float MIC_BASELINE_L = 0.2f;  // Side length
+    const float MIC1_X = 0.0f;    const float MIC1_Y = 0.11547f;
+    const float MIC2_X = -0.1f;   const float MIC2_Y = -0.057735f;
+    const float MIC3_X = 0.1f;    const float MIC3_Y = -0.057735f;
+
+
+TROUBLESHOOTING
+================================================================================
+
+"Onset not detected in all channels"
+--------------------------------------------------------------------------------
+  - Check microphone connections
+  - Verify ADC is reading non-zero values
+  - Lower ONSET_THRESHOLD
+  - Clap louder or closer to array
+
+"Delays exceed physical limits"
+--------------------------------------------------------------------------------
+  - ADC channels may be out of sync
+  - Check for timing issues in capture loop
+  - Verify SAMPLE_RATE_HZ matches actual rate
+  - Reduce noise/interference
+
+Angle is wrong
+--------------------------------------------------------------------------------
+  - Verify microphone positions match configured geometry
+  - Check for 180° systematic offset
+  - Ensure microphones are properly grounded
+
+Distance always "unreliable"
+--------------------------------------------------------------------------------
+  - This is normal beyond 10m with 3 mics
+  - Try closer distances (1-5m)
+  - Check that angle is correct first
+  - Consider increasing DISTANCE_CONFIDENCE_THRESHOLD_CM
+
+
+CONTRIBUTING
+================================================================================
+
+This is an active prototype! Areas that need work:
+  - Better onset detection algorithms
+  - GCC-PHAT implementation
+  - Real-world testing data
+  - Calibration procedures
+  - Documentation improvements
+
+
+REFERENCES
+================================================================================
+
+  - GCC-PHAT Algorithm:
+    https://www.ee.columbia.edu/~dpwe/papers/KnappC76-generalized.pdf
+
+  - TDoA Fundamentals:
+    https://en.wikipedia.org/wiki/Time_difference_of_arrival
+
+  - RP2350 Datasheet:
+    https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+
+
+================================================================================
+Last Updated: 10/22/2025
+Status: Prototype / Active Development
+================================================================================
