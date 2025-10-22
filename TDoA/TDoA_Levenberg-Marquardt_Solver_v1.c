@@ -1,6 +1,4 @@
 // Several issues with this code; namely, the initial guesses are way off base and are probably worse than useless.
-// Regardless, the Levenberg-Marquardt solver is a potentially more robust solution than the Newton-Gauss solver,
-// so worth considering as an option for the final implementation.
 
 #include <stdio.h>     // For printf
 #include <stdint.h>    // Include standard integer types
