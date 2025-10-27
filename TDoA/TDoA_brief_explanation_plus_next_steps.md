@@ -100,9 +100,9 @@ The system excels at determining *direction* to a sound source, with distance es
 ## Next Steps: Hardware Implementation
 
 ### What We Have Now
-- ✅ Time delay estimator (works on pre-captured buffers)
-- ✅ TDoA solver (angle + distance calculation)
-- ✅ Test suites (simulated claps)
+- Time delay estimator (works on pre-captured buffers)
+- TDoA solver (angle + distance calculation)
+- Test suites (simulated claps)
 
 ### What We Need for Pico Hardware
 
