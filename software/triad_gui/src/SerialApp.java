@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Scanner;
+import java.nio.charset.StandardCharsets;
 
 public class SerialApp extends JFrame {
 
@@ -29,9 +30,11 @@ public class SerialApp extends JFrame {
         disconnectBtn = new JButton("Disconnect");
         top.add(new JLabel("Port:"));
         top.add(portList);
+        top.add(new JLabel("Baud:"));
         top.add(baudField);
         top.add(connectBtn);
         top.add(disconnectBtn);
+        add(top, BorderLayout.NORTH);
 
 
         setVisible(true);
