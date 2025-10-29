@@ -26,7 +26,7 @@ public class SerialApp extends JFrame {
         // top [anel
         JPanel top = new JPanel();
         portList = new JComboBox<>();
-
+        refreshPorts();
         baudField = new JTextField("9600", 8);
         connectBtn = new JButton("Connect");
         disconnectBtn = new JButton("Disconnect");
@@ -52,6 +52,8 @@ public class SerialApp extends JFrame {
         bottom.add(sendBtn, BorderLayout.EAST);
         add(bottom, BorderLayout.SOUTH);
 
+
+
         setVisible(true);
     }
 
@@ -63,7 +65,28 @@ public class SerialApp extends JFrame {
         }
     }
 
+    private void onConnect(ActionEvent e)  {
+        if(running) return;
+        try {
+            String portName = (String) portList.getSelectedItem();
 
+            int baud = Integer.parseInt(baudField.getText().trim());
+
+            serialPort = serialPort.getCommPort(portName);
+
+            serialPort.setBaudRate(baud);
+            serialPort.openPort();
+            running = true;
+
+        } catch (Exception ex) {
+            append("err + "+ ex.getMessage());
+        }
+    }
+
+    private void append(String msg) {
+        logArea.append(msg + "\n");
+        logArea.setCaretPosition(logArea.getDocument().getLength());
+    }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(SerialApp::new);
     }
