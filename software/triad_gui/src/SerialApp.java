@@ -14,6 +14,8 @@ public class SerialApp extends JFrame {
     private JTextField inputField;
     private JTextArea logArea;
 
+    private SerialPort serialPort;
+    private boolean running = false;
 
     public SerialApp() {
         super("Triad GUI");
@@ -36,9 +38,31 @@ public class SerialApp extends JFrame {
         top.add(disconnectBtn);
         add(top, BorderLayout.NORTH);
 
+        // center log
+        logArea = new JTextArea();
+        logArea.setEditable(false);
+        logArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+        add(new JScrollPane(logArea), BorderLayout.CENTER);
+
+        // send line
+        JPanel bottom = new JPanel(new BorderLayout());
+        inputField = new JTextField();
+        sendBtn = new JButton("Send");
+        bottom.add(inputField, BorderLayout.CENTER);
+        bottom.add(sendBtn, BorderLayout.EAST);
+        add(bottom, BorderLayout.SOUTH);
 
         setVisible(true);
     }
+
+
+    private void refreshPorts() {
+        portList.removeAllItems();
+        for (SerialPort port : SerialPort.getCommPorts()) {
+            portList.addItem(port.getSystemPortName());
+        }
+    }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(SerialApp::new);
