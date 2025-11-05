@@ -84,3 +84,20 @@ all
 * built prototype Levenberg-Marquardt solver; found that system returned good results with synthetic data when multiple initial guesses are taken at different distances along the axis of the geometrically calculated angle to the sound source
 * assembled first hardware prototype
 * decided to proceed first with detecting mic time deltas of transient sound sources; should be simpler than identifying mic time deltas from constant sound source, which will require more sophisticated cross-correlation algorithm --> extensive signal processing
+
+# Oct 28, 2025
+**Members present:**  
+all  
+**Meeting duration:**  
+30 min
+**Meeting outcomes:**  
+* discussed plans for prototype testing in preparation from writing second report
+* built prototype TDoA onset detector which accepts buffers of data from each of the 3 mics
+
+# Nov 4, 2025
+**Members present:**  
+all  
+**Meeting duration:**  
+1 hour  
+**Meeting outcomes:**  
+* established that we would begin with the hardware implementation by implementing an algorithm which return which mic receives the threshold sound first
