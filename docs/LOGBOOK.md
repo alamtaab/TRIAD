@@ -92,12 +92,12 @@ all
 30 min
 **Meeting outcomes:**  
 * discussed plans for prototype testing in preparation from writing second report
-* built prototype TDoA onset detector which accepts buffers of data from each of the 3 mics
 
 # Nov 4, 2025
 **Members present:**  
 all  
 **Meeting duration:**  
-1 hour  
+2 hour  
 **Meeting outcomes:**  
-* established that we would begin with the hardware implementation by implementing an algorithm which return which mic receives the threshold sound first
+* wrote prototype time delay estimator for transient sound sources
+* worked on getting the estimator running on the hardware prototype
