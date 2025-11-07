@@ -100,4 +100,4 @@ all
 2 hour  
 **Meeting outcomes:**  
 * wrote prototype time delay estimator for transient sound sources
-* worked on getting the estimator running on the hardware prototype
+* worked on getting the estimator running on the hardware prototype; ran into microphone hardware issue which prevented further testing until microphone was replaced
