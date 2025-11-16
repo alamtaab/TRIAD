@@ -32,22 +32,6 @@ uint16_t capture_buf[BUFFER_SIZE];
 
 
 
-// primary DSP function
-
-
-float calculate_ste(const uint16_t* samples, int size) {
-
-    float energy = 0.0f;
-
-    // 12 bit adc (0-4095) - 2048 to center ~ 0
-    // to account for + and - signal swings
-    for (int i = 0; i < size; ++i) {
-        int32_t sample = (int32_t)samples[i] - 2048;
-        energy += (float)(sample*sample);
-    }
-}
-
-
 
 
 
