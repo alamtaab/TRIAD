@@ -15,6 +15,20 @@
 // sample rate per microphone
 #define SAMPLE_RATE_PER_CHANNEL 48000.0f // Hz
 
+// onset algo. const.
+
+// window size for short-time energy (hereinafter ste) calc (samples/channel)
+// 64 samples @ 48khz ~ 1.3ms
+
+#define STE_WINDOW_SIZE 64
+
+// factor whereby peak ste must > avg noise ste
+#define THRESHOLD_MULTIPLIER 5.0f
+
+// num initial samples for calc. noise floor; must > ste_window_size
+#define NOISE_FLOOR_SAMPLES 512
+
+uint16_t capture_buf[BUFFER_SIZE];
 
 int main() {
 
