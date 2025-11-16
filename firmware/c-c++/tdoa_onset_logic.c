@@ -30,6 +30,21 @@
 
 uint16_t capture_buf[BUFFER_SIZE];
 
+
+
+// primary DSP function
+
+
+float calculate_ste(const uint16_t* samples, int size) {
+
+    float energy = 0.0f;
+
+    for (int i = 0; i < size; ++i) {
+        int32_t sample = (int32_t)samples[i] - 2048;
+        energy += (float)(sample*sample);
+    }
+}
+
 int main() {
 
     return 0;
