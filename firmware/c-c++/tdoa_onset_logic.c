@@ -7,15 +7,15 @@
 // config const.
 
 // samples captured by dma pre-processing
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 6144
 
-// 3 microphones
+// 3 microphones (m1, m2, m3)
 #define NUM_CHANNELS 3
 
 // sample rate per microphone
 #define SAMPLE_RATE_PER_CHANNEL 48000.0f // Hz
 
-// onset algo. const.
+// onset det. algo. const.
 
 // window size for short-time energy (hereinafter ste) calc (samples/channel)
 // 64 samples @ 48khz ~ 1.3ms
