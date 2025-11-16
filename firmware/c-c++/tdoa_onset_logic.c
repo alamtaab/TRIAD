@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 // config const.
@@ -13,7 +13,7 @@
 #define NUM_CHANNELS 3
 
 // sample rate per microphone
-#define SAMPLE_RATE_PER_CHANNEL 48000.0f // Hz
+#define SAMPLE_RATE_PER_CHANNEL 48000.0f  // Hz
 
 // onset det. algo. const.
 
@@ -32,28 +32,24 @@ uint16_t capture_buf[BUFFER_SIZE];
 
 // primary dsp function
 
-int detect_onset_indices(const uint16_t *buffer, int buffer_len, int32_t *n1_out, int32_t *n2_out, int32_t *n3_out)
-{
-
-    *n1_out = -1; // pointer to store m1 onset sample index
-    *n2_out = -1; //"
-    n3_out = -1;  //"
+int detect_onset_indices(const uint16_t* buffer, int buffer_len, int32_t* n1_out, int32_t* n2_out, int32_t* n3_out) {
+    *n1_out = -1;  // pointer to store m1 onset sample index
+    *n2_out = -1;  //"
+    n3_out = -1;   //"
 
     float total_noise_ste[NUM_CHANNELS] = {0.0f};
     int num_ste_windows = 0;
 
-    for (int i = 0; i < NOISE_FLOOR_SAMPLES * NUM_CHANNELS; i += NUM_CHANNELS)
-    {
+    for (int i = 0; i < NOISE_FLOOR_SAMPLES * NUM_CHANNELS; i += NUM_CHANNELS) {
         if (i + STE_WINDOW_SIZE * NUM_CHANNELS >= buffer_len)
-            break; // check boundary
+            break;  // check boundary
 
         // calculate ste for m1 (start at buffer[i] step = 3)
         float current_ste1 = 0.0f;
         float current_ste2 = 0.0f;
         float current_ste3 = 0.0f;
 
-        for (int j = 0; j < STE_WINDOW_SIZE; j++)
-        {
+        for (int j = 0; j < STE_WINDOW_SIZE; j++) {
             // m1: index i + j * 3
             int32_t sample1 = (int32_t)buffer[i + j * NUM_CHANNELS] - 2048;
             current_ste1 += (float)(sample1 * sample1);
@@ -72,8 +68,7 @@ int detect_onset_indices(const uint16_t *buffer, int buffer_len, int32_t *n1_out
 
         num_ste_windows++;
 
-        if (num_ste_windows == 0)
-        {
+        if (num_ste_windows == 0) {
             printf("err: buffer too short to calculate noise floor.\n");
             return 0;
         }
@@ -94,53 +89,49 @@ int detect_onset_indices(const uint16_t *buffer, int buffer_len, int32_t *n1_out
 
         // part 2 search for onset (first ste window that exceeds threshold)
 
-        int start_index = NOISE_FLOOR_SAMPLES * NUM_CHANNELS; // start search from here
+        int start_index = NOISE_FLOOR_SAMPLES * NUM_CHANNELS;  // start search from here
 
-        for (int i = start_index; i < buffer_len - STE_WINDOW_SIZE * NUM_CHANNELS; i += NUM_CHANNELS)
-        {
-
+        for (int i = start_index; i < buffer_len - STE_WINDOW_SIZE * NUM_CHANNELS; i += NUM_CHANNELS) {
             // calculate ste of current window for all m
             float current_ste1 = 0.0f;
             float current_ste2 = 0.0f;
             float current_ste3 = 0.0f;
         }
 
-        for (int j = 0; j < STE_WINDOW_SIZE; j++)
-        {
+        for (int j = 0; j < STE_WINDOW_SIZE; j++) {
             // m1 (index i + j*3)
-            current_ste1 += (float)(((int32_t)buffer[i + j * NUM_CHANNELS] - 2048) * ((int32_t)buffer[i + j * NUM_CHANNELS] - 2048));
+            current_ste1 += (float)(((int32_t)buffer[i + j * NUM_CHANNELS] - 2048) *
+                                    ((int32_t)buffer[i + j * NUM_CHANNELS] - 2048));
 
             // m2 (index i + 1 + j*3)
-            current_ste2 += (float)(((int32_t)buffer[i + 1 + j * NUM_CHANNELS] - 2048) * ((int32_t)buffer[i + 1 + j * NUM_CHANNELS] - 2048));
+            current_ste2 += (float)(((int32_t)buffer[i + 1 + j * NUM_CHANNELS] - 2048) *
+                                    ((int32_t)buffer[i + 1 + j * NUM_CHANNELS] - 2048));
 
             // m3 (index i + 2 + j*3)
-            current_ste3 += (float)(((int32_t)buffer[i + 2 + j * NUM_CHANNELS] - 2048) * ((int32_t)buffer[i + 2 + j * NUM_CHANNELS] - 2048));
+            current_ste3 += (float)(((int32_t)buffer[i + 2 + j * NUM_CHANNELS] - 2048) *
+                                    ((int32_t)buffer[i + 2 + j * NUM_CHANNELS] - 2048));
         }
 
-        // check thresholds and record non interleaved sample index ( i / num channels)
-        if (*n1_out == -1 && current_ste1 > threshold1)
-        {
+        // check thresholds and record non interleaved sample index ( i / num
+        // channels)
+        if (*n1_out == -1 && current_ste1 > threshold1) {
             *n1_out = i / NUM_CHANNELS;
         }
-        if (*n2_out == -1 && current_ste2 > threshold2)
-        {
+        if (*n2_out == -1 && current_ste2 > threshold2) {
             *n2_out = i / NUM_CHANNELS;
         }
-        if (*n3_out == -1 && current_ste3 > threshold3)
-        {
+        if (*n3_out == -1 && current_ste3 > threshold3) {
             *n3_out = i / NUM_CHANNELS;
         }
 
         // stop if all onsets found
-        if (*n1_out != -1 && *n2_out != -1 && *n3_out != -1)
-        {
+        if (*n1_out != -1 && *n2_out != -1 && *n3_out != -1) {
             break;
         }
     }
     // part 3 check results
 
-    if (*n1_out == -1 || *n2_out == -1 || *n3_out == -1)
-    {
+    if (*n1_out == -1 || *n2_out == -1 || *n3_out == -1) {
         printf("err: onset not detected for one or more microphones in buffer.\n");
         return 0;
     }
@@ -148,8 +139,6 @@ int detect_onset_indices(const uint16_t *buffer, int buffer_len, int32_t *n1_out
     return 1;
 }
 
-int main()
-{
-
+int main() {
     return 0;
 }
