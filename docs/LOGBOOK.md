@@ -101,3 +101,5 @@ all
 **Meeting outcomes:**  
 * wrote prototype time delay estimator for transient sound sources
 * worked on getting the estimator running on the hardware prototype; ran into microphone hardware issue which prevented further testing until microphone was replaced
+# Nov 18,2025
+* The gain was ajusted on the microphones so that the resistance was 73.6 ± 0.2 Kohms.
