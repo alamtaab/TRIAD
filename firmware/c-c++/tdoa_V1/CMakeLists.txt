@@ -1,32 +1,57 @@
+# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.2.0)
+set(toolchainVersion 14_2_Rel1)
+set(picotoolVersion 2.2.0-a4)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
+set(PICO_BOARD pico2 CACHE STRING "Board type")
+
 cmake_minimum_required(VERSION 3.13)
 
 # Initialize Pico SDK
+# This file must be present in your project directory.
 include(pico_sdk_import.cmake)
 
-project(apsc140_tdoa C CXX ASM)
+# UPDATED: Project name matches your folder "tdoa_V1"
+project(tdoa_V1 C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-# Initialize the SDK
+# Initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Define the executable
-add_executable(apsc140_tdoa
+# UPDATED: This will generate "tdoa_V1.uf2"
+add_executable(tdoa_V1
     main.c
 )
 
-# Link libraries
-target_link_libraries(apsc140_tdoa 
+# Link necessary libraries
+# pico_stdlib: Standard GPIO and timing
+# hardware_adc: For microphone reading
+# hardware_dma: For fast data transfer
+# m: Standard math library (for atan2f, sqrtf, etc.)
+target_link_libraries(tdoa_V1 
     pico_stdlib 
     hardware_adc 
     hardware_dma
-    m  # Math library
+    m
 )
 
-# Enable USB Output (Critical for Serial Monitor!)
-pico_enable_stdio_usb(apsc140_tdoa 1)
-pico_enable_stdio_uart(apsc140_tdoa 0)
+# Enable USB Output
+# This is critical for "Serial Monitor" to work.
+# 1 = Enabled, 0 = Disabled
+pico_enable_stdio_usb(tdoa_V1 1)
+pico_enable_stdio_uart(tdoa_V1 0)
 
-# Create map/bin/hex/uf2 files
-pico_add_extra_outputs(apsc140_tdoa)
+# Create standard output files (.uf2, .hex, .bin)
+pico_add_extra_outputs(tdoa_V1)
