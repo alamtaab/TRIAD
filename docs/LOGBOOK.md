@@ -101,7 +101,7 @@ all
 **Meeting outcomes:**  
 * wrote prototype time delay estimator for transient sound sources
 * worked on getting the estimator running on the hardware prototype; ran into microphone hardware issue which prevented further testing until microphone was replaced
-# Nov 18,2025
+# Nov 18, 2025
 **Members present:**
 all
 **Meeting duration**
@@ -110,4 +110,12 @@ all
 * debugged and developed working firmware
 * The gain was adjusted on the microphones so that the resistance was 73.6 ± 0.2 Kohms.
 * status: functional prototype achieved; successfully detecting impulse sounds and calculating angle of arrival
-* commenced drafting of final report and presentation 
+* commenced drafting of final report and presentation
+
+# Nov 20, 2025
+**Members present:**
+all
+**Meeting duration**
+3 hours
+* encountered issues with the computer-Pico serial interface; were able to flash the Pico with new firmware but unable to see it in serial on 2 different computers
+* 
