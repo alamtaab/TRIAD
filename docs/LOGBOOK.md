@@ -103,9 +103,9 @@ all
 * worked on getting the estimator running on the hardware prototype; ran into microphone hardware issue which prevented further testing until microphone was replaced
 # Nov 18, 2025
 **Members present:**  
-all
+all  
 **Meeting duration**  
-4.5 hours
+4.5 hours  
 **Meeting outcomes:**  
 * integrated previously developed tdoa solver and onset detection logic into unified firmware
 * debugged and developed working firmware
@@ -115,18 +115,18 @@ all
 
 # Nov 20, 2025
 **Members present:**  
-all
+all  
 **Meeting duration**  
-3 hours
+3 hours  
 **Meeting outcomes:**  
 * encountered issues with the computer-Pico serial interface; were able to flash the Pico with new firmware but unable to see it in serial on 2 different computers
 * figured out that the issue was the computer defaulting to the wrong (non-ARM) compiler when compiling the Pico firmware.
 
 # Nov 25, 2025
 **Members present:**  
-all
+all  
 **Meeting duration**  
-2 hours
+2 hours  
 **Meeting outcomes:**  
 * Created powerpoint draft
 * started work on poster
@@ -134,9 +134,9 @@ all
 
 # Nov 27, 2025
 **Members present:**  
-all
+all  
 **Meeting duration**  
-3 hours
+3 hours  
 **Meeting outcomes:**  
 * Finalized presentation & poster
 * printed poster at Staples
